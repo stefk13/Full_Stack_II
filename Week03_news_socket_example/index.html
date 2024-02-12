@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket Client</title>
+</head>
+<body>
+    <h1>Simple Socket.io News Application</h1>
+    <h2 id="welcome-msg"></h2>
+    <div id="news-list"></div>
+    <script src = "/socket.io/socket.io.js"></script>
+    <script>
+        //Connect to Server
+        var socket = io('http://localhost:8088');
+
+        socket.on("welcome", (data) => {
+            console.log(data)
+            var msgH1 = document.getElementById("welcome-msg");
+            msgH1.innerHTML = data
+        })
+
+        //To get news
+        socket.on("latest-news", (data) => {
+            console.log(data)
+            var div = document.getElementById("news-list");
+            for(var i = 0; i < data.length; i++) {
+                var newsItem = data[i];
+                div.innerHTML += "<h4>" + newsItem.title + ' <small>'+ newsItem.date + "</small></h4><br>";
+            }
+
+            socket.emit("news-received", "News Received")
+        })
+    </script>
+</body>
+</html>
