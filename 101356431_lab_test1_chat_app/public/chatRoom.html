@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+</head>
+<body>
+    <div id="chat-room-container">
+        <button id="backButton">Back to Rooms</button>
+        <h2 id="roomTitle"></h2>
+        <div id="chat-messages"></div>
+        <input type="text" id="messageInput" placeholder="Type a message..." />
+        <button id="sendMessage">Send</button>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const ioClient = io()
+        const room = new URLSearchParams(window.location.search).get('room')
+
+        document.getElementById('roomTitle').textContent = `Room: ${decodeURIComponent(room)}`
+    
+        document.getElementById('backButton').addEventListener('click', () => {
+            window.location.href = 'chat.html'
+        })
+    
+        document.getElementById('sendMessage').addEventListener('click', () => {
+            const message = document.getElementById('messageInput').value
+            const username = "Username" 
+            ioClient.emit('group_message', { group: room, username, message })
+            document.getElementById('messageInput').value = ''
+        })
+    
+        ioClient.on('group_message_client', (data) => {
+            const chatMessages = document.getElementById('chat-messages')
+            const messageElement = document.createElement('div')
+            if (data.username && data.message) {
+                messageElement.textContent = `${data.username}: ${data.message}`
+            } else {
+                console.log('Received message data is incomplete:', data)
+                return 
+            }
+            chatMessages.appendChild(messageElement)
+        })
+    
+        ioClient.emit('join_group', room)
+    
+        ioClient.on('connect', () => {
+            console.log('Connected as', ioClient.id)
+        })
+    
+        ioClient.on('disconnect', () => {
+            console.log('Disconnected')
+        })
+    
+        function joinGroup() {
+            ioClient.emit('join_group', room)
+        }
+    
+        function leaveGroup() {
+            ioClient.emit('leave_group', room)
+        }
+    </script>
+    
+    
+</body>
+</html>
+
